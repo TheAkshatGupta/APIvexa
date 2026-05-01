@@ -105,6 +105,22 @@ backend/\
 
 ------------------------------------------------------------------------
 
+## 🧠 System Architecture
+
+Flow:
+
+1. User registers and logs in
+2. JWT token is generated
+3. User creates an API key
+4. Client sends request with API key
+5. Request goes through APIvexa Gateway
+6. API key is validated
+7. Request is processed
+8. Usage is logged in database
+9. Billing is calculated based on usage
+
+------------------------------------------------------------------------
+
 ## 🌐 GitHub Repository
 
 https://github.com/TheAkshatGupta/APIvexa-backend
