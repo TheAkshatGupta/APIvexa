@@ -121,6 +121,16 @@ Flow:
 
 ------------------------------------------------------------------------
 
+## 🔁 Request Flow (Example)
+
+1. POST /api/auth/login → get JWT
+2. POST /api/keys/create → generate API key
+3. GET /api/gateway/pokemon/pikachu (with x-api-key)
+4. GET /api/usage → see total requests
+5. GET /api/billing → see cost
+
+------------------------------------------------------------------------
+
 ## 🌐 GitHub Repository
 
 https://github.com/TheAkshatGupta/APIvexa-backend
