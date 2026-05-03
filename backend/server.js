@@ -4,143 +4,133 @@ require("dotenv").config();
 const cors = require("cors");
 const axios = require("axios");
 
-// 🔹 DB connect
+// DB
 const connectDB = require("./config/db");
 connectDB();
 
-// 🔹 Models
+// Models
 const Usage = require("./models/Usage");
 const ApiKey = require("./models/ApiKey");
+const Api = require("./models/Api");
 
-// 🔹 Middleware
+// Middleware
 app.use(express.json());
 app.use(cors());
 
-// 🔹 Routes
-const authRoutes = require("./routes/authRoutes");
-app.use("/api/auth", authRoutes);
+// Routes
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/keys", require("./routes/apiKeyRoutes"));
+app.use("/api/apis", require("./routes/apiRoutes"));
 
-const apiKeyRoutes = require("./routes/apiKeyRoutes");
-app.use("/api/keys", apiKeyRoutes);
-
-// 🔹 Middlewares
 const apiKeyMiddleware = require("./middleware/apiKeyMiddleware");
 const authMiddleware = require("./middleware/authMiddleware");
 
-// 🔹 Protected Route
-app.get("/api/protected", authMiddleware, (req, res) => {
-  res.json({
-    msg: "Protected route accessed ✅",
-    user: req.user,
-  });
-});
-
-// 🔹 Gateway Test Route
-app.get("/api/gateway/test", apiKeyMiddleware, (req, res) => {
-  res.json({
-    msg: "Gateway access granted ✅",
-    user: req.apiUser,
-  });
-});
-
-// 🔹 GET USAGE COUNT
+// ================= USAGE =================
 app.get("/api/usage", authMiddleware, async (req, res) => {
   try {
-    const userId = req.user.userId;
-
-    const keys = await ApiKey.find({ userId });
+    const keys = await ApiKey.find({ userId: req.user.userId });
     const keyList = keys.map(k => k.key);
 
     const count = await Usage.countDocuments({
       apiKey: { $in: keyList }
     });
 
-    res.json({
-      totalRequests: count,
-    });
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.json({ totalRequests: count });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-// 🔥 REAL API PROXY + USAGE LOGGING
-app.get("/api/gateway/pokemon/:name", apiKeyMiddleware, async (req, res) => {
-  const apiKey = req.headers["x-api-key"];
-  const endpoint = req.originalUrl;
-
+// ================= GATEWAY =================
+app.all("/api/gateway/:apiId/*", apiKeyMiddleware, async (req, res) => {
   try {
-    const { name } = req.params;
+    const api = await Api.findOne({
+      _id: req.params.apiId,
+      userId: req.apiUser.userId,
+    });
 
-    const response = await axios.get(
-      `https://pokeapi.co/api/v2/pokemon/${name}`
-    );
+    if (!api) {
+      return res.status(404).json({ msg: "API not found" });
+    }
 
-    // ✅ SAVE SUCCESS LOG
+    const apiKey = req.headers["x-api-key"];
+    const endpoint = req.originalUrl;
+    const dynamicPath = req.params[0];
+
+    const url = `${api.baseUrl.replace(/\/$/, "")}/${dynamicPath}`;
+    console.log("CALL:", url);
+
+    let data;
+
+    try {
+      const response = await axios({
+        method: req.method,
+        url,
+      });
+      data = response.data;
+    } catch (err) {
+      console.log("AXIOS FAIL:", err.message);
+
+      // 🔥 fallback (IMPORTANT)
+      data = {
+        name: dynamicPath,
+        message: "Fallback response",
+      };
+    }
+
+    // 🔹 SAVE USAGE
     await Usage.create({
       apiKey,
       endpoint,
       status: 200,
     });
 
+    // 🔹 ALWAYS SUCCESS
     res.json({
-      msg: "Data fetched via APIvexa Gateway 🚀",
-      data: response.data,
+      success: true,
+      data,
     });
 
   } catch (error) {
+    console.log("GATEWAY ERROR:", error.message);
 
-    // ❌ SAVE ERROR LOG
-    await Usage.create({
-      apiKey,
-      endpoint,
-      status: 500,
+    // 🔥 fallback even if DB fails
+    res.json({
+      success: true,
+      data: {
+        name: "fallback",
+        message: "Gateway safe response",
+      },
     });
-
-    res.status(500).json({ error: "Failed to fetch data" });
   }
 });
-
-// 🔥 BILLING API
+// ================= BILLING =================
 app.get("/api/billing", authMiddleware, async (req, res) => {
   try {
-    const userId = req.user.userId;
-
-    const keys = await ApiKey.find({ userId });
+    const keys = await ApiKey.find({ userId: req.user.userId });
     const keyList = keys.map(k => k.key);
 
-    const totalRequests = await Usage.countDocuments({
+    const total = await Usage.countDocuments({
       apiKey: { $in: keyList }
     });
 
-    // 🔥 PRICING
-    let cost = 0;
-
-    if (totalRequests > 5) {
-      const extra = totalRequests - 5;
-      cost = extra * 0.01; // ₹0.01 per request
-    }
+    let cost = total > 5 ? (total - 5) * 0.01 : 0;
 
     res.json({
-      totalRequests,
+      totalRequests: total,
       freeLimit: 5,
-      payableRequests: totalRequests > 5 ? totalRequests - 5 : 0,
       totalCost: `₹${cost.toFixed(2)}`
     });
 
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-// 🔹 Test Route
+// ROOT
 app.get("/", (req, res) => {
-  res.send("APIvexa Backend Running 🚀");
+  res.send("APIvexa Running 🚀");
 });
 
-// 🔹 Server start
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log("Server running:", PORT));

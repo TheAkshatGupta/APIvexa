@@ -1,5 +1,4 @@
 const ApiKey = require("../models/ApiKey");
-const Usage = require("../models/Usage");
 
 module.exports = async (req, res, next) => {
   try {
@@ -15,15 +14,19 @@ module.exports = async (req, res, next) => {
       return res.status(403).json({ msg: "Invalid API key" });
     }
 
-    // 🔥 COUNT USAGE
-    const usageCount = await Usage.countDocuments({ apiKey });
+    if (keyExists.active === false) {
+      return res.status(403).json({ msg: "API key revoked" });
+    }
 
+    // 🔥 IMPORTANT: NO RATE LIMIT HERE (we will add later properly)
+    req.apiUser = {
+      userId: keyExists.userId,
+    };
 
-
-    req.apiUser = keyExists.userId;
     next();
 
   } catch (error) {
+    console.log("API KEY MIDDLEWARE ERROR:", error.message);
     res.status(500).json({ error: error.message });
   }
 };

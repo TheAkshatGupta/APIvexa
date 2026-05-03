@@ -104,7 +104,6 @@ backend/\
 ├── server.js
 
 ------------------------------------------------------------------------
-
 ## 🧠 System Architecture
 
 Flow:
@@ -130,7 +129,6 @@ Flow:
 5. GET /api/billing → see cost
 
 ------------------------------------------------------------------------
-
 ## 🌐 GitHub Repository
 
 https://github.com/TheAkshatGupta/APIvexa-backend
