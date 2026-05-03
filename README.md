@@ -1,141 +1,165 @@
-# 🚀 APIvexa Backend -- Usage-Based API Billing Platform
+# 🚀 APIvexa – Usage-Based API Billing Platform
 
-## 📌 Introduction
+## 📌 Overview
 
-APIvexa Backend is a scalable API gateway system that enables API key
-authentication, usage tracking, and dynamic billing based on request
-consumption.
+APIvexa is a full-stack SaaS platform that simulates real-world API providers like Stripe or RapidAPI.
+It includes API key authentication, dynamic gateway routing, usage tracking, and billing.
 
-------------------------------------------------------------------------
+---
 
-## 🎯 Features
+## ✨ Features
 
--   JWT Authentication
--   API Key Generation
--   API Gateway Layer
--   Usage Tracking
--   Billing Engine
+* 🔐 JWT Authentication (Login/Register)
+* 🔑 API Key Generation & Revoke
+* 🌐 Dynamic API Gateway
+* 📊 Usage Tracking System
+* 💰 Billing Engine (Free + Paid Tier)
+* ⚡ Fallback System (Gateway never fails)
+* 🖥️ Dashboard UI (React + Tailwind)
 
-------------------------------------------------------------------------
+---
 
 ## 🧱 Tech Stack
 
--   Node.js
--   Express.js
--   MongoDB
--   Mongoose
--   JWT
--   Axios
+### Backend
 
-------------------------------------------------------------------------
+* Node.js
+* Express.js
+* MongoDB (Mongoose)
+* JWT
+* Axios
 
-## ⚙️ How It Works
+### Frontend
 
-1.  User registers and logs in\
-2.  User generates an API key\
-3.  API requests go through the gateway\
-4.  API key is validated\
-5.  Requests are logged\
-6.  Usage is tracked\
-7.  Billing is calculated
+* React.js
+* Tailwind CSS
+* Vite
 
-------------------------------------------------------------------------
+---
 
-## 🔗 API Endpoints
+## 🧠 How It Works
 
-### Auth
+1. User logs in and receives JWT token
+2. User creates an API key
+3. Requests go through API Gateway
+4. API key is validated
+5. Requests are logged in database
+6. Usage is tracked
+7. Billing is calculated
 
--   POST /api/auth/register
--   POST /api/auth/login
+---
 
-### API Keys
+## 🌐 API Flow (Example)
 
--   POST /api/keys/create
+```
+POST /api/auth/login → Get Token  
+POST /api/keys/create → Create API Key  
+GET /api/gateway/:apiId/pokemon/pikachu  
+GET /api/usage → Total Requests  
+GET /api/billing → Billing Cost  
+```
 
-### Gateway
+---
 
--   GET /api/gateway/pokemon/:name
+## 📊 Billing Logic
 
-### Usage
+* First **5 requests FREE**
+* After that:
 
--   GET /api/usage
+```
+₹0.01 per request
+```
 
-### Billing
+---
 
--   GET /api/billing
+## 🖥️ Dashboard Preview
 
-------------------------------------------------------------------------
+👉 Features shown in UI:
 
-## 🧪 Example Flow
+* Total Requests
+* Billing Summary
+* API Keys Management
+* Create & Revoke Keys
 
-GET /api/gateway/pokemon/pikachu
-
-Header: x-api-key: your_api_key
-
-GET /api/usage
-
-GET /api/billing
-
-------------------------------------------------------------------------
-
-## 🚀 Run Locally
-
-npm install\
-npm run dev
-
-------------------------------------------------------------------------
-
-## 🔐 Environment Variables
-
-PORT=5000\
-MONGO_URI=your_mongodb_connection\
-JWT_SECRET=your_secret_key
-
-------------------------------------------------------------------------
+---
 
 ## 📁 Project Structure
 
-backend/\
-├── controllers/\
-├── routes/\
-├── middleware/\
-├── models/\
-├── config/\
-├── server.js
+```
+APIvexa/
+ ├── backend/
+ │   ├── controllers/
+ │   ├── models/
+ │   ├── routes/
+ │   ├── middleware/
+ │   └── server.js
+ │
+ └── frontend/
+     ├── src/
+     ├── pages/
+     └── App.jsx
+```
 
-------------------------------------------------------------------------
-## 🧠 System Architecture
+---
 
-Flow:
+## ⚙️ Setup Instructions
 
-1. User registers and logs in
-2. JWT token is generated
-3. User creates an API key
-4. Client sends request with API key
-5. Request goes through APIvexa Gateway
-6. API key is validated
-7. Request is processed
-8. Usage is logged in database
-9. Billing is calculated based on usage
+### 1. Clone Repo
 
-------------------------------------------------------------------------
+```
+git clone https://github.com/TheAkshatGupta/APIvexa.git
+```
 
-## 🔁 Request Flow (Example)
+---
 
-1. POST /api/auth/login → get JWT
-2. POST /api/keys/create → generate API key
-3. GET /api/gateway/pokemon/pikachu (with x-api-key)
-4. GET /api/usage → see total requests
-5. GET /api/billing → see cost
+### 2. Backend Setup
 
-------------------------------------------------------------------------
-## 🌐 GitHub Repository
+```
+cd backend
+npm install
+```
 
-https://github.com/TheAkshatGupta/APIvexa-backend
+Create `.env`:
 
-------------------------------------------------------------------------
+```
+PORT=5000
+MONGO_URI=your_mongodb_url
+JWT_SECRET=your_secret
+```
+
+Run:
+
+```
+npm run dev
+```
+
+---
+
+### 3. Frontend Setup
+
+```
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+## 🎯 Key Highlights
+
+✔ Dynamic API Gateway
+✔ Real-time Usage Tracking
+✔ Billing Calculation
+✔ Production-like SaaS System
+
+---
 
 ## 🧾 Conclusion
 
-This project demonstrates a real-world SaaS backend system including API
-gateway, usage tracking, and billing.
+APIvexa demonstrates a real-world architecture of an API billing platform including gateway, metering, and pricing engine.
+
+---
+
+## 👨‍💻 Author
+
+Akshat Gupta
